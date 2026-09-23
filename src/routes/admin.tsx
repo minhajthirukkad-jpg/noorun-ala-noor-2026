@@ -1053,7 +1053,7 @@ function ResultsTab({
         Grade: r.grade,
         Score: r.score,
       })),
-      "MNMF2026-Results",
+      "Noorun-Ala-Noor-2026-Results",
       "Results",
     );
     toast.success("Results exported to Excel");
@@ -1441,7 +1441,7 @@ function GeneralResultsTab({
         Grade: g.grade,
         Score: g.score,
       })),
-      "MNMF2026-General-Results",
+      "Noorun-Ala-Noor-2026-General-Results",
       "General Results",
     );
     toast.success("General results exported to Excel");

@@ -3,7 +3,7 @@ import { ArrowLeft, KeyRound, LockKeyhole, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { checkAdminPassword, setAdminUnlocked } from "@/lib/gate.functions";
+import { checkAdminPassword, DEFAULT_FEST_PASSWORD, setAdminUnlocked } from "@/lib/gate.functions";
 
 export const Route = createFileRoute("/unlock")({
   head: () => ({
@@ -64,8 +64,8 @@ function Unlock() {
           />
           {error && (
             <p className="text-sm font-medium text-destructive">
-              Incorrect password. Please use <span className="font-mono font-bold">noorun2025</span>
-              .
+              Incorrect password. Default password is{" "}
+              <span className="font-mono font-bold">{DEFAULT_FEST_PASSWORD}</span>.
             </p>
           )}
           <Button className="w-full" type="submit">
@@ -79,9 +79,9 @@ function Unlock() {
             <span>Admin Password Credentials</span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Password:{" "}
+            Default Password:{" "}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono font-bold text-foreground">
-              noorun2025
+              {DEFAULT_FEST_PASSWORD}
             </code>
           </p>
           <Button
@@ -90,12 +90,12 @@ function Unlock() {
             size="sm"
             className="mt-2.5 w-full text-xs"
             onClick={() => {
-              setPassword("noorun2025");
-              performUnlock("noorun2025");
+              setPassword(DEFAULT_FEST_PASSWORD);
+              performUnlock(DEFAULT_FEST_PASSWORD);
             }}
           >
             <Sparkles className="size-3.5 text-primary" />
-            One-Click Unlock (noorun2025)
+            One-Click Unlock ({DEFAULT_FEST_PASSWORD})
           </Button>
         </div>
 

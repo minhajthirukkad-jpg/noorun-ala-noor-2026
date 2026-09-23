@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const LOVABLE_AUTH_KEY = "mnmf2k26-admin";
+const ADMIN_AUTH_KEY = "mnmf2k26-admin";
 const STALE_LEGACY_KEY = "noorun_admin_unlocked";
 const CUSTOM_PASSWORD_KEY = "mnmf2k26-admin-custom-password";
 export const DEFAULT_FEST_PASSWORD = "MNMF2K26";
@@ -46,7 +46,7 @@ export function isAdminUnlocked(): boolean {
   try {
     // Clean up any stale permanent bypass from earlier development
     window.localStorage.removeItem(STALE_LEGACY_KEY);
-    return window.sessionStorage.getItem(LOVABLE_AUTH_KEY) === "1";
+    return window.sessionStorage.getItem(ADMIN_AUTH_KEY) === "1";
   } catch {
     return false;
   }
@@ -57,9 +57,9 @@ export function setAdminUnlocked(unlocked: boolean): void {
   try {
     window.localStorage.removeItem(STALE_LEGACY_KEY);
     if (unlocked) {
-      window.sessionStorage.setItem(LOVABLE_AUTH_KEY, "1");
+      window.sessionStorage.setItem(ADMIN_AUTH_KEY, "1");
     } else {
-      window.sessionStorage.removeItem(LOVABLE_AUTH_KEY);
+      window.sessionStorage.removeItem(ADMIN_AUTH_KEY);
     }
   } catch {
     // Ignore storage issues

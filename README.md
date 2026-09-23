@@ -1,26 +1,26 @@
-# Noorun Ala Noor Fest
+# Noorun Ala Noor Meelad Fest 2026
 
-https://mehfile-noor-fest26.lovable.app/. I want this website changing the name from MEHFILE NOOR to NOORUN ALA NOOR keeping all features there. And provide Admin panel password also.
+**Guideon Learning Hub**
 
-This project was built with [Lovable](https://lovable.dev).
+Official application for the Noorun Ala Noor Meelad Fest 2026.
 
-**Live app**: https://noor-un-ala-noor.lovable.app
+## Features
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/716f06b2-473d-44bb-b944-c32d0ff4d9e8).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+- **Live Scoreboard & Grand Standings**: Real-time rank calculation with on-stage and off-stage points.
+- **Top Winner Marquee**: Live continuous scrolling ticker for 1st, 2nd, and 3rd place announcements.
+- **Secret Rank Reveal Animation**: Celebration modal with ceremonial reveal and confetti.
+- **Results Explorer**: Searchable competitor results with category and stage-type filters.
+- **Admin Management Panel**: Password-protected dashboard for managing competitors, programs, individual scores, and team results.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+```sh
+npm install
+npm run dev
+```
+
+## Production Build
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+npm run build
 ```
