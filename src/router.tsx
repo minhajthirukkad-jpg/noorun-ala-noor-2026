@@ -11,8 +11,13 @@ export function getRouter() {
     },
   });
 
+  const isGhPages =
+    typeof window !== "undefined" && window.location.pathname.startsWith("/noorun-ala-noor-2026");
+  const basepath = isGhPages ? "/noorun-ala-noor-2026" : undefined;
+
   const router = createRouter({
     routeTree,
+    basepath,
     context: {
       queryClient,
     },

@@ -1,5 +1,7 @@
 node_modules
 dist
+docs
+dist-client
 .output
 .vinxi
 pnpm-lock.yaml
