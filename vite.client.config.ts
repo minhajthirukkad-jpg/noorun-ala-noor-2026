@@ -11,6 +11,11 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: "client.html",
+      output: {
+        entryFileNames: "assets/client.js",
+        chunkFileNames: "assets/[name].js",
+        assetFileNames: "assets/[name].[ext]",
+      },
     },
   },
 });

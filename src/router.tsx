@@ -11,9 +11,14 @@ export function getRouter() {
     },
   });
 
-  const isGhPages =
-    typeof window !== "undefined" && window.location.pathname.startsWith("/noorun-ala-noor-2026");
-  const basepath = isGhPages ? "/noorun-ala-noor-2026" : undefined;
+  let basepath: string | undefined = undefined;
+  if (typeof window !== "undefined") {
+    if (window.location.pathname.startsWith("/noorun-ala-noor-2026/docs")) {
+      basepath = "/noorun-ala-noor-2026/docs";
+    } else if (window.location.pathname.startsWith("/noorun-ala-noor-2026")) {
+      basepath = "/noorun-ala-noor-2026";
+    }
+  }
 
   const router = createRouter({
     routeTree,

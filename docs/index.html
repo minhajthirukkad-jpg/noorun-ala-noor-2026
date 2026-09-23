@@ -14,10 +14,24 @@
       content="Official festival scoreboard, real-time live program status, searchable results, and admin management for Noorun Ala Noor Meelad Fest 2026."
     />
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
-    
     <script type="text/javascript">
-      // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
+      // Clean up any stale /dist/ URL loops from browser history
       (function (l) {
+        if (l.pathname.includes("/dist") || l.search.includes("/dist")) {
+          var cleanPath = l.pathname.replace(/\/dist\/?/g, "/");
+          var cleanSearch = l.search.replace(/[\?&]\/dist\/?/g, "");
+          l.replace(
+            l.protocol +
+              "//" +
+              l.hostname +
+              (l.port ? ":" + l.port : "") +
+              cleanPath +
+              cleanSearch +
+              l.hash,
+          );
+          return;
+        }
+        // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
         if (l.search[1] === "/") {
           var decoded = l.search
             .slice(1)
@@ -29,14 +43,13 @@
           window.history.replaceState(
             null,
             null,
-            l.pathname.slice(0, -1) + decoded + l.hash
+            l.pathname.slice(0, -1) + decoded + l.hash,
           );
         }
       })(window.location);
     </script>
-
-    <script type="module" crossorigin src="./assets/client-BNaYxvc8.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/styles-CKHbzW9t.css">
+    <script type="module" crossorigin src="./assets/client.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/styles.css" />
   </head>
   <body class="bg-background text-foreground antialiased min-h-screen">
     <div id="root"></div>

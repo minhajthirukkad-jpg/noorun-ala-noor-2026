@@ -4,27 +4,40 @@
     <meta charset="utf-8" />
     <title>Noorun Ala Noor Meelad Fest 2026 | Guideon Learning Hub</title>
     <script type="text/javascript">
-      var pathSegmentsToKeep = 1;
       var l = window.location;
-      l.replace(
-        l.protocol +
-          "//" +
-          l.hostname +
-          (l.port ? ":" + l.port : "") +
-          l.pathname
-            .split("/")
-            .slice(0, 1 + pathSegmentsToKeep)
-            .join("/") +
-          "/?/" +
-          l.pathname
-            .slice(1)
-            .split("/")
-            .slice(pathSegmentsToKeep)
-            .join("/")
-            .replace(/&/g, "~and~") +
-          (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
-          l.hash,
-      );
+      // Immediately break any /dist/ redirect loops and send to root
+      if (l.pathname.includes("/dist") || l.search.includes("/dist")) {
+        l.replace(
+          l.protocol + "//" + l.hostname + (l.port ? ":" + l.port : "") + "/noorun-ala-noor-2026/",
+        );
+      } else {
+        var pathSegmentsToKeep = 1;
+        var p = l.pathname.slice(1).split("/").slice(pathSegmentsToKeep).join("/");
+        if (p && !p.startsWith("dist")) {
+          l.replace(
+            l.protocol +
+              "//" +
+              l.hostname +
+              (l.port ? ":" + l.port : "") +
+              l.pathname
+                .split("/")
+                .slice(0, 1 + pathSegmentsToKeep)
+                .join("/") +
+              "/?/" +
+              p.replace(/&/g, "~and~") +
+              (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
+              l.hash,
+          );
+        } else {
+          l.replace(
+            l.protocol +
+              "//" +
+              l.hostname +
+              (l.port ? ":" + l.port : "") +
+              "/noorun-ala-noor-2026/",
+          );
+        }
+      }
     </script>
   </head>
   <body></body>
