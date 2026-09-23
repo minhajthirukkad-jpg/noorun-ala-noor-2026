@@ -1,0 +1,6 @@
+{
+  "name": "Noorun Ala Noor Fest",
+  "description": "Festival scoreboard, real-time live program status, searchable results, and admin management for Noorun Ala Noor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
