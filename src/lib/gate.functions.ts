@@ -1,5 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
-
 const ADMIN_AUTH_KEY = "mnmf2k26-admin";
 const STALE_LEGACY_KEY = "noorun_admin_unlocked";
 const CUSTOM_PASSWORD_KEY = "mnmf2k26-admin-custom-password";
@@ -66,17 +64,16 @@ export function setAdminUnlocked(unlocked: boolean): void {
   }
 }
 
-export const unlockSite = createServerFn({ method: "POST" })
-  .inputValidator((data: { password: string }) => data)
-  .handler(async ({ data }) => {
-    const ok = checkAdminPassword(data.password);
-    return { ok };
-  });
+export async function unlockSite(data: { password: string }) {
+  const ok = checkAdminPassword(data.password);
+  return { ok };
+}
 
-export const getAdminDashboard = createServerFn({ method: "GET" }).handler(async () => {
-  return { title: "Festival administration", unlocked: false };
-});
+export async function getAdminDashboard() {
+  return { title: "Festival administration", unlocked: isAdminUnlocked() };
+}
 
-export const lockSite = createServerFn({ method: "POST" }).handler(async () => {
+export async function lockSite() {
+  setAdminUnlocked(false);
   return { ok: true as const };
-});
+}
