@@ -231,6 +231,65 @@ export function useFestivalData() {
     return Array.from(map.values()).filter((e) => e.first || e.second || e.third);
   }, [adminResults, generalResults]);
 
+  const resetAllData = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(STORAGE_TEAMS);
+      window.localStorage.removeItem(STORAGE_COMPETITORS);
+      window.localStorage.removeItem(STORAGE_PROGRAMS);
+      window.localStorage.removeItem(STORAGE_ADMIN_RESULTS);
+      window.localStorage.removeItem(STORAGE_GENERAL_RESULTS);
+      window.localStorage.removeItem(STORAGE_RESULTS);
+      window.localStorage.removeItem(STORAGE_STATUSES);
+    }
+    setTeams(initialTeams);
+    setCompetitors(initialCompetitorRecords);
+    setPrograms(initialProgramRecords);
+    setAdminResults(initialAdminResults);
+    setGeneralResults(initialGeneralResults);
+    setResults(initialResults);
+    setStatuses(initialStatuses);
+    notifyChange();
+  };
+
+  const exportAllData = () => {
+    const backup = {
+      version: "2026.1",
+      exportedAt: new Date().toISOString(),
+      teams,
+      competitors,
+      programs,
+      adminResults,
+      generalResults,
+      results,
+      statuses,
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `noorun-ala-noor-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importAllData = (jsonString: string): boolean => {
+    try {
+      const data = JSON.parse(jsonString);
+      if (!data) return false;
+      if (Array.isArray(data.teams)) saveTeams(data.teams);
+      if (Array.isArray(data.competitors)) saveCompetitors(data.competitors);
+      if (Array.isArray(data.programs)) savePrograms(data.programs);
+      if (Array.isArray(data.adminResults)) saveAdminResults(data.adminResults);
+      if (Array.isArray(data.generalResults)) saveGeneralResults(data.generalResults);
+      if (Array.isArray(data.statuses)) saveStatuses(data.statuses);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return {
     teams,
     competitors,
@@ -251,6 +310,9 @@ export function useFestivalData() {
     saveGeneralResults,
     saveResults,
     saveStatuses,
+    resetAllData,
+    exportAllData,
+    importAllData,
     reloadAll,
   };
 }

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Check,
+  Download,
   Eye,
   EyeOff,
   FileSpreadsheet,
@@ -9,11 +10,13 @@ import {
   LogOut,
   Pencil,
   Plus,
+  RotateCcw,
   Search,
   ShieldCheck,
   Sparkles,
   Trash2,
   Trophy,
+  Upload,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -279,6 +282,86 @@ function AdminPage() {
           <div className="hidden sm:block mr-1">
             <GuideonInstitutionLogo className="size-12 sm:size-14" />
           </div>
+          {/* Backup & Data Tools */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={festivalData.exportAllData}
+            title="Download JSON backup of all festival data"
+            className="gap-1.5"
+          >
+            <Download className="size-4 text-muted-foreground" />
+            <span className="hidden sm:inline">Backup</span>
+          </Button>
+
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  const content = event.target?.result as string;
+                  if (content && festivalData.importAllData(content)) {
+                    toast.success("Festival data imported successfully!");
+                  } else {
+                    toast.error("Failed to import: invalid JSON format");
+                  }
+                };
+                reader.readAsText(file);
+                e.target.value = "";
+              }}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              className="gap-1.5 pointer-events-none"
+            >
+              <Upload className="size-4 text-muted-foreground" />
+              <span className="hidden sm:inline">Restore</span>
+            </Button>
+          </label>
+
+          {/* Reset All Festival Data Dialog */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-destructive hover:bg-destructive/10"
+                title="Reset all festival data back to original defaults"
+              >
+                <RotateCcw className="size-4" />
+                <span className="hidden sm:inline">Reset</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset all festival data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will reset all teams, competitors, programs, competition results, and
+                  statuses back to default. Any unsaved custom entries will be replaced.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    festivalData.resetAllData();
+                    toast.success("Festival data reset to defaults");
+                  }}
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                >
+                  Reset Everything
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           {/* Password Management Dialog */}
           <Dialog open={passwordModalOpen} onOpenChange={setPasswordModalOpen}>
             <DialogTrigger asChild>
@@ -458,19 +541,45 @@ function AdminPage() {
    ========================================================================= */
 function TeamsTab({ teams, onSaveTeams }: { teams: Team[]; onSaveTeams: (next: Team[]) => void }) {
   const [teamName, setTeamName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
-  const handleAddTeam = () => {
-    if (!teamName.trim()) {
-      toast.error("Enter a team name");
-      return;
+  const handleAddOrEditTeam = () => {
+    if (editingId) {
+      if (!editingName.trim()) {
+        toast.error("Enter a valid team name");
+        return;
+      }
+      const updated = teams.map((t) =>
+        t.id === editingId ? { ...t, name: editingName.trim() } : t,
+      );
+      onSaveTeams(updated);
+      setEditingId(null);
+      setEditingName("");
+      toast.success("Team name updated");
+    } else {
+      if (!teamName.trim()) {
+        toast.error("Enter a team name");
+        return;
+      }
+      const newTeam: Team = {
+        id: `team-${Date.now()}`,
+        name: teamName.trim(),
+      };
+      onSaveTeams([...teams, newTeam]);
+      setTeamName("");
+      toast.success("Team added");
     }
-    const newTeam: Team = {
-      id: `team-${Date.now()}`,
-      name: teamName.trim(),
-    };
-    onSaveTeams([...teams, newTeam]);
-    setTeamName("");
-    toast.success("Team added");
+  };
+
+  const handleStartEdit = (t: Team) => {
+    setEditingId(t.id);
+    setEditingName(t.name);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingName("");
   };
 
   const handleDeleteTeam = (id: string) => {
@@ -478,46 +587,105 @@ function TeamsTab({ teams, onSaveTeams }: { teams: Team[]; onSaveTeams: (next: T
     toast.success("Team deleted");
   };
 
+  const handleRestoreDefaultTeams = () => {
+    onSaveTeams(initialTeams);
+    toast.success("Default festival teams restored");
+  };
+
   return (
     <div className="space-y-6">
-      {/* Add Team */}
+      {/* Add / Edit Team Form */}
       <div className="glass-card p-5">
-        <h3 className="mb-4 text-lg font-semibold">Add Team</h3>
+        <h3 className="mb-4 text-lg font-semibold">{editingId ? "Edit Team Name" : "Add Team"}</h3>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Input
-            placeholder="Team name"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddTeam()}
+            placeholder={editingId ? "Update team name" : "Team name (e.g., TEAM SURAYYA)"}
+            value={editingId ? editingName : teamName}
+            onChange={(e) =>
+              editingId ? setEditingName(e.target.value) : setTeamName(e.target.value)
+            }
+            onKeyDown={(e) => e.key === "Enter" && handleAddOrEditTeam()}
           />
-          <Button onClick={handleAddTeam}>
-            <Plus className="size-4 mr-1.5" /> Add Team
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleAddOrEditTeam}>
+              {editingId ? (
+                <>
+                  <Check className="size-4 mr-1.5" /> Save Name
+                </>
+              ) : (
+                <>
+                  <Plus className="size-4 mr-1.5" /> Add Team
+                </>
+              )}
+            </Button>
+            {editingId && (
+              <Button variant="outline" onClick={handleCancelEdit}>
+                <X className="size-4 mr-1.5" /> Cancel
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Teams List */}
       <div className="glass-card p-5">
-        <h3 className="mb-4 text-lg font-semibold">Teams ({teams.length})</h3>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-lg font-semibold">Teams ({teams.length})</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRestoreDefaultTeams}
+            className="text-xs gap-1.5"
+            title="Reset teams list back to default 3 teams"
+          >
+            <RotateCcw className="size-3.5" />
+            Restore Default Teams
+          </Button>
+        </div>
+
         {teams.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No teams yet.</p>
+          <div className="rounded-xl border border-dashed border-border p-8 text-center">
+            <p className="text-sm text-muted-foreground">No teams registered.</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRestoreDefaultTeams}
+              className="mt-3 text-xs"
+            >
+              Restore Default Teams
+            </Button>
+          </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {teams.map((team) => (
               <div
                 key={team.id}
-                className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3"
+                className="flex items-center justify-between rounded-xl border border-border bg-background/60 px-4 py-3 shadow-sm hover:border-primary/40 transition-colors"
               >
-                <span className="font-medium">{team.name}</span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  type="button"
-                  onClick={() => handleDeleteTeam(team.id)}
-                  title="Delete team"
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="size-2.5 rounded-full bg-primary" />
+                  <span className="font-semibold text-foreground">{team.name}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    type="button"
+                    onClick={() => handleStartEdit(team)}
+                    title="Rename team"
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    type="button"
+                    onClick={() => handleDeleteTeam(team.id)}
+                    title="Delete team"
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
