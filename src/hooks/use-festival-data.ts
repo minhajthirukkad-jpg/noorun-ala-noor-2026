@@ -77,7 +77,11 @@ export function useFestivalData() {
   }, []);
 
   useEffect(() => {
-    const handleSync = () => {
+    const handleSync = (e: Event) => {
+      // Ignore sync events triggered locally within the same React state session
+      if (e instanceof CustomEvent && e.detail?.source === "local") {
+        return;
+      }
       reloadAll();
     };
 
@@ -92,7 +96,7 @@ export function useFestivalData() {
 
   const notifyChange = () => {
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event(MNMF_DATA_SYNC_EVENT));
+      window.dispatchEvent(new CustomEvent(MNMF_DATA_SYNC_EVENT, { detail: { source: "local" } }));
     }
   };
 

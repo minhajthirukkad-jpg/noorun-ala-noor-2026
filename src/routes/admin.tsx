@@ -19,7 +19,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +58,7 @@ import {
   ALL_CATEGORIES,
   CATEGORIES,
   GRADES,
+  initialTeams,
   POSITIONS,
   STAGE_TYPES,
   type AdminResultRecord,
@@ -98,17 +99,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPage() {
-  const [unlocked, setUnlocked] = useState(false);
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Password management modal states
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-
-  const festivalData = useFestivalData();
+  const [unlocked, setUnlocked] = useState(() => isAdminUnlocked());
 
   useEffect(() => {
     if (isAdminUnlocked()) {
@@ -128,24 +119,145 @@ function AdminPage() {
     }
   }, []);
 
-  const handleUnlock = () => {
+  const handleUnlockSuccess = useCallback(() => {
+    setUnlocked(true);
+  }, []);
+
+  const handleLockSuccess = useCallback(() => {
+    setAdminUnlocked(false);
+    setUnlocked(false);
+    toast.info("Admin panel locked");
+  }, []);
+
+  if (!unlocked) {
+    return <AdminLoginScreen onUnlocked={handleUnlockSuccess} />;
+  }
+
+  return <AdminDashboard onLock={handleLockSuccess} />;
+}
+
+/* =========================================================================
+   LOGIN SCREEN (Lightweight & Isolated)
+   ========================================================================= */
+const AdminLoginScreen = memo(function AdminLoginScreen({
+  onUnlocked,
+}: {
+  onUnlocked: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleUnlock = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (checkAdminPassword(password)) {
       setAdminUnlocked(true);
-      setUnlocked(true);
+      onUnlocked();
       toast.success("Admin access granted");
     } else {
       toast.error("Incorrect password. Please try again.");
     }
   };
 
-  const handleLock = () => {
-    setAdminUnlocked(false);
-    setUnlocked(false);
-    setPassword("");
-    toast.info("Admin panel locked");
-  };
+  return (
+    <main className="flex min-h-screen items-center justify-center px-4 bg-background">
+      <div className="glass-card w-full max-w-sm p-7 text-center border border-border shadow-xl">
+        <div className="mx-auto mb-3 flex justify-center">
+          <FestivalCalligraphyLogo className="size-20" />
+        </div>
+        <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+          <Lock className="size-4 text-primary" />
+        </div>
+        <h1 className="text-xl font-bold tracking-tight">Admin Panel</h1>
+        <p className="mt-1 text-sm font-medium text-amber-500">
+          Noorun Ala Noor · Meelad Fest 2026
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Guideon Learning Hub</p>
+        <p className="mt-3 text-xs text-muted-foreground/80">
+          Enter the password to access administrative features
+        </p>
 
-  const handleSavePassword = () => {
+        <form onSubmit={handleUnlock} className="mt-4 space-y-3">
+          <div className="relative">
+            <Input
+              id="admin-password-input"
+              name="admin_password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              className="pr-10 text-center font-mono tracking-wider"
+              placeholder="Enter password (MNMF2K26)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoFocus
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+
+          <Button type="submit" className="w-full font-medium">
+            <KeyRound className="size-4 mr-1.5" /> Unlock Panel
+          </Button>
+        </form>
+
+        {/* Quick 1-click Unlock Helper */}
+        <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3 text-left">
+          <div className="flex items-center justify-between text-xs font-semibold text-primary">
+            <span>Festival Passcode</span>
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground font-bold">
+              {DEFAULT_FEST_PASSWORD}
+            </code>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2.5 w-full text-xs font-semibold gap-1.5 border-primary/30 hover:bg-primary/10"
+            onClick={() => {
+              setPassword(DEFAULT_FEST_PASSWORD);
+              if (checkAdminPassword(DEFAULT_FEST_PASSWORD)) {
+                setAdminUnlocked(true);
+                onUnlocked();
+                toast.success("Admin access granted");
+              }
+            }}
+          >
+            <Sparkles className="size-3.5 text-primary" />
+            Quick Unlock with Default Key
+          </Button>
+        </div>
+
+        <Link
+          to="/"
+          className="mt-4 inline-block text-sm text-muted-foreground hover:underline transition-colors"
+        >
+          ← Back to scoreboard
+        </Link>
+      </div>
+    </main>
+  );
+});
+
+/* =========================================================================
+   MAIN ADMIN DASHBOARD
+   ========================================================================= */
+const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => void }) {
+  // Password management modal states
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  const festivalData = useFestivalData();
+
+  const handleSavePassword = useCallback(() => {
     const trimmed = newPassword.trim();
     if (!trimmed) {
       toast.error("Password cannot be empty");
@@ -160,109 +272,15 @@ function AdminPage() {
     setNewPassword("");
     setConfirmPassword("");
     toast.success("Admin password updated successfully");
-  };
+  }, [newPassword, confirmPassword]);
 
-  const handleResetPassword = () => {
+  const handleResetPassword = useCallback(() => {
     setCustomAdminPassword(DEFAULT_FEST_PASSWORD);
     setPasswordModalOpen(false);
     setNewPassword("");
     setConfirmPassword("");
     toast.success(`Password reset to default (${DEFAULT_FEST_PASSWORD})`);
-  };
-
-  if (!unlocked) {
-    return (
-      <main className="flex min-h-screen items-center justify-center px-4 bg-background">
-        <div className="glass-card w-full max-w-sm p-7 text-center border border-border shadow-xl">
-          <div className="mx-auto mb-3 flex justify-center">
-            <FestivalCalligraphyLogo className="size-20" />
-          </div>
-          <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
-            <Lock className="size-4 text-primary" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">Admin Panel</h1>
-          <p className="mt-1 text-sm font-medium text-amber-500">
-            Noorun Ala Noor · Meelad Fest 2026
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">Guideon Learning Hub</p>
-          <p className="mt-3 text-xs text-muted-foreground/80">
-            Enter the password to access administrative features
-          </p>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleUnlock();
-            }}
-            className="mt-4 space-y-3"
-          >
-            <div className="relative">
-              <Input
-                id="admin-password-input"
-                name="admin_password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                className="pr-10 text-center font-mono tracking-wider"
-                placeholder="Enter password (MNMF2K26)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-              </button>
-            </div>
-
-            <Button type="submit" className="w-full font-medium">
-              <KeyRound className="size-4 mr-1.5" /> Unlock Panel
-            </Button>
-          </form>
-
-          {/* Quick 1-click Unlock Helper */}
-          <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3 text-left">
-            <div className="flex items-center justify-between text-xs font-semibold text-primary">
-              <span>Festival Passcode</span>
-              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground font-bold">
-                {DEFAULT_FEST_PASSWORD}
-              </code>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2.5 w-full text-xs font-semibold gap-1.5 border-primary/30 hover:bg-primary/10"
-              onClick={() => {
-                setPassword(DEFAULT_FEST_PASSWORD);
-                if (checkAdminPassword(DEFAULT_FEST_PASSWORD)) {
-                  setAdminUnlocked(true);
-                  setUnlocked(true);
-                  toast.success("Admin access granted");
-                }
-              }}
-            >
-              <Sparkles className="size-3.5 text-primary" />
-              Quick Unlock with Default Key
-            </Button>
-          </div>
-
-          <Link
-            to="/"
-            className="mt-4 inline-block text-sm text-muted-foreground hover:underline transition-colors"
-          >
-            ← Back to scoreboard
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  }, []);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-6">
@@ -465,7 +483,7 @@ function AdminPage() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={handleLock}
+            onClick={onLock}
             title="Lock panel and exit"
             className="gap-1.5"
           >
@@ -534,12 +552,18 @@ function AdminPage() {
       </Tabs>
     </main>
   );
-}
+});
 
 /* =========================================================================
    1. TEAMS TAB
    ========================================================================= */
-function TeamsTab({ teams, onSaveTeams }: { teams: Team[]; onSaveTeams: (next: Team[]) => void }) {
+const TeamsTab = memo(function TeamsTab({
+  teams,
+  onSaveTeams,
+}: {
+  teams: Team[];
+  onSaveTeams: (next: Team[]) => void;
+}) {
   const [teamName, setTeamName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -693,12 +717,12 @@ function TeamsTab({ teams, onSaveTeams }: { teams: Team[]; onSaveTeams: (next: T
       </div>
     </div>
   );
-}
+});
 
 /* =========================================================================
    2. COMPETITORS TAB
    ========================================================================= */
-function CompetitorsTab({
+const CompetitorsTab = memo(function CompetitorsTab({
   competitors,
   teams,
   onSaveCompetitors,
@@ -908,12 +932,12 @@ function CompetitorsTab({
       </div>
     </div>
   );
-}
+});
 
 /* =========================================================================
    3. PROGRAMS TAB
    ========================================================================= */
-function ProgramsTab({
+const ProgramsTab = memo(function ProgramsTab({
   programs,
   onSavePrograms,
 }: {
@@ -1109,12 +1133,12 @@ function ProgramsTab({
       </div>
     </div>
   );
-}
+});
 
 /* =========================================================================
    4. RESULTS TAB (Competition Results)
    ========================================================================= */
-function ResultsTab({
+const ResultsTab = memo(function ResultsTab({
   results,
   competitors,
   programs,
@@ -1623,12 +1647,12 @@ function ResultsTab({
       </div>
     </div>
   );
-}
+});
 
 /* =========================================================================
    5. GENERAL RESULTS TAB
    ========================================================================= */
-function GeneralResultsTab({
+const GeneralResultsTab = memo(function GeneralResultsTab({
   generalResults,
   programs,
   teams,
@@ -1938,12 +1962,12 @@ function GeneralResultsTab({
       </div>
     </div>
   );
-}
+});
 
 /* =========================================================================
    6. PROGRAM STATUS TAB (Live Festival Screens)
    ========================================================================= */
-function StatusTab({
+const StatusTab = memo(function StatusTab({
   statuses,
   programs,
   onSaveStatuses,
@@ -2094,4 +2118,4 @@ function StatusTab({
       </div>
     </div>
   );
-}
+});
