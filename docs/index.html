@@ -13,27 +13,11 @@
       property="og:description"
       content="Official festival scoreboard, real-time live program status, searchable results, and admin management for Noorun Ala Noor Meelad Fest 2026."
     />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="stylesheet" crossorigin href="./assets/styles.css" />
     <script type="text/javascript">
-      // Clean up any stale /dist/ URL loops from browser history
-      (function () {
-        var l = window.location;
-        var path = l.pathname;
-        if (path.includes("/dist") || l.search.includes("/dist")) {
-          var cleanPath = path.replace(/\/dist\/?/g, "/");
-          var cleanSearch = l.search.replace(/[\?&]\/dist\/?/g, "");
-          l.replace(
-            l.protocol +
-              "//" +
-              l.hostname +
-              (l.port ? ":" + l.port : "") +
-              cleanPath +
-              cleanSearch +
-              l.hash,
-          );
-          return;
-        }
-
-        // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
+      // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
+      (function (l) {
         if (l.search && l.search[1] === "/") {
           var decoded = l.search
             .slice(1)
@@ -42,7 +26,7 @@
               return s.replace(/~and~/g, "&");
             })
             .join("?");
-          var basePath = path.replace(/\/$/, "");
+          var basePath = l.pathname.replace(/\/$/, "");
           var subPath = decoded.startsWith("/") ? decoded : "/" + decoded;
           window.history.replaceState(
             null,
@@ -50,39 +34,9 @@
             basePath + subPath + l.hash,
           );
         }
-
-        // Determine base path for static assets
-        var assetBase = "/";
-        if (path.indexOf("/noorun-ala-noor-2026/docs") === 0) {
-          assetBase = "/noorun-ala-noor-2026/docs/";
-        } else if (path.indexOf("/noorun-ala-noor-2026") === 0) {
-          assetBase = "/noorun-ala-noor-2026/";
-        } else if ("./" !== "./") {
-          assetBase = "./";
-        }
-
-        // Favicon
-        var fav = document.createElement("link");
-        fav.rel = "icon";
-        fav.type = "image/x-icon";
-        fav.href = assetBase + "favicon.ico";
-        document.head.appendChild(fav);
-
-        // Stylesheet
-        var link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.crossOrigin = "";
-        link.href = assetBase + "assets/styles.css?v=2.2.5";
-        document.head.appendChild(link);
-
-        // App Bundle Script
-        var script = document.createElement("script");
-        script.type = "module";
-        script.crossOrigin = "";
-        script.src = assetBase + "assets/client.js?v=2.2.5";
-        document.head.appendChild(script);
-      })();
+      })(window.location);
     </script>
+    <script type="module" crossorigin src="./assets/client.js"></script>
   </head>
   <body class="bg-background text-foreground antialiased min-h-screen">
     <div id="root"></div>
