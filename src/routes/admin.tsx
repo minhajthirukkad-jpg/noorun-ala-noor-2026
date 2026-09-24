@@ -249,6 +249,9 @@ const AdminLoginScreen = memo(function AdminLoginScreen({
    MAIN ADMIN DASHBOARD
    ========================================================================= */
 const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => void }) {
+  const [activeTab, setActiveTab] = useState<string>("teams");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Password management modal states
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -282,6 +285,25 @@ const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => 
     toast.success(`Password reset to default (${DEFAULT_FEST_PASSWORD})`);
   }, []);
 
+  const handleFileRestore = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        if (content && festivalData.importAllData(content)) {
+          toast.success("Festival data imported successfully!");
+        } else {
+          toast.error("Failed to import: invalid JSON format");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    },
+    [festivalData],
+  );
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-6">
       {/* Header */}
@@ -306,43 +328,29 @@ const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => 
             size="sm"
             onClick={festivalData.exportAllData}
             title="Download JSON backup of all festival data"
-            className="gap-1.5"
+            className="gap-1.5 cursor-pointer"
           >
             <Download className="size-4 text-muted-foreground" />
             <span className="hidden sm:inline">Backup</span>
           </Button>
 
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  const content = event.target?.result as string;
-                  if (content && festivalData.importAllData(content)) {
-                    toast.success("Festival data imported successfully!");
-                  } else {
-                    toast.error("Failed to import: invalid JSON format");
-                  }
-                };
-                reader.readAsText(file);
-                e.target.value = "";
-              }}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              className="gap-1.5 pointer-events-none"
-            >
-              <Upload className="size-4 text-muted-foreground" />
-              <span className="hidden sm:inline">Restore</span>
-            </Button>
-          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={handleFileRestore}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            className="gap-1.5 cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="size-4 text-muted-foreground" />
+            <span className="hidden sm:inline">Restore</span>
+          </Button>
 
           {/* Reset All Festival Data Dialog */}
           <AlertDialog>
@@ -350,7 +358,7 @@ const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => 
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-destructive hover:bg-destructive/10"
+                className="gap-1.5 text-destructive hover:bg-destructive/10 cursor-pointer"
                 title="Reset all festival data back to original defaults"
               >
                 <RotateCcw className="size-4" />
@@ -383,7 +391,7 @@ const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => 
           {/* Password Management Dialog */}
           <Dialog open={passwordModalOpen} onOpenChange={setPasswordModalOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="gap-1.5 cursor-pointer">
                 <KeyRound className="size-4 text-muted-foreground" />
                 <span>Password</span>
               </Button>
@@ -485,7 +493,7 @@ const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => 
             size="sm"
             onClick={onLock}
             title="Lock panel and exit"
-            className="gap-1.5"
+            className="gap-1.5 cursor-pointer"
           >
             <LogOut className="size-4" />
             Lock
@@ -494,14 +502,26 @@ const AdminDashboard = memo(function AdminDashboard({ onLock }: { onLock: () => 
       </header>
 
       {/* Tabs */}
-      <Tabs defaultValue="teams">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-5 flex h-auto w-full flex-wrap justify-start gap-1 bg-background/60 p-1 border border-border">
-          <TabsTrigger value="teams">Teams</TabsTrigger>
-          <TabsTrigger value="competitors">Competitors</TabsTrigger>
-          <TabsTrigger value="programs">Programs</TabsTrigger>
-          <TabsTrigger value="results">Result</TabsTrigger>
-          <TabsTrigger value="general">General Result</TabsTrigger>
-          <TabsTrigger value="status">Program Status</TabsTrigger>
+          <TabsTrigger value="teams" className="cursor-pointer">
+            Teams
+          </TabsTrigger>
+          <TabsTrigger value="competitors" className="cursor-pointer">
+            Competitors
+          </TabsTrigger>
+          <TabsTrigger value="programs" className="cursor-pointer">
+            Programs
+          </TabsTrigger>
+          <TabsTrigger value="results" className="cursor-pointer">
+            Result
+          </TabsTrigger>
+          <TabsTrigger value="general" className="cursor-pointer">
+            General Result
+          </TabsTrigger>
+          <TabsTrigger value="status" className="cursor-pointer">
+            Program Status
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="teams">
