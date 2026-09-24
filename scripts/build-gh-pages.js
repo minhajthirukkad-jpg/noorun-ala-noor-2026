@@ -43,8 +43,8 @@ for (const dir of [distAssetsDir, docsAssetsDir]) {
   }
 }
 
-// 4. Clean HTML Template for index.html (SPA with query-param router restore)
-const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
+// 4. Clean HTML Template for index.html (SPA with query-param router restore and universal asset resolver)
+const getIndexHtml = (defaultPrefix = "./") => `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -59,10 +59,8 @@ const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
       property="og:description"
       content="Official festival scoreboard, real-time live program status, searchable results, and admin management for Noorun Ala Noor Meelad Fest 2026."
     />
-    <link rel="icon" type="image/x-icon" href="${assetPrefix}favicon.ico" />
-    <link rel="stylesheet" crossorigin href="${assetPrefix}assets/styles.css" />
     <script type="text/javascript">
-      // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
+      // 1. GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
       (function (l) {
         if (l.search && l.search[1] === "/") {
           var decoded = l.search
@@ -81,8 +79,38 @@ const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
           );
         }
       })(window.location);
+
+      // 2. Universal Asset Injector (resolves correctly on any URL path on GitHub Pages & preview)
+      (function () {
+        var p = window.location.pathname;
+        var prefix = p.indexOf("/noorun-ala-noor-2026/docs") !== -1
+          ? "/noorun-ala-noor-2026/docs/"
+          : p.indexOf("/noorun-ala-noor-2026") !== -1
+            ? "/noorun-ala-noor-2026/"
+            : "${defaultPrefix}";
+
+        // Favicon
+        var fav = document.createElement("link");
+        fav.rel = "icon";
+        fav.type = "image/x-icon";
+        fav.href = prefix + "favicon.ico";
+        document.head.appendChild(fav);
+
+        // Stylesheet
+        var css = document.createElement("link");
+        css.rel = "stylesheet";
+        css.crossOrigin = "anonymous";
+        css.href = prefix + "assets/styles.css";
+        document.head.appendChild(css);
+
+        // Client JavaScript Bundle
+        var script = document.createElement("script");
+        script.type = "module";
+        script.crossOrigin = "anonymous";
+        script.src = prefix + "assets/client.js";
+        document.head.appendChild(script);
+      })();
     </script>
-    <script type="module" crossorigin src="${assetPrefix}assets/client.js"></script>
   </head>
   <body class="bg-background text-foreground antialiased min-h-screen">
     <div id="root"></div>

@@ -94,84 +94,105 @@ export function useFestivalData() {
     };
   }, [reloadAll]);
 
-  const notifyChange = () => {
+  const notifyChange = useCallback(() => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent(MNMF_DATA_SYNC_EVENT, { detail: { source: "local" } }));
     }
-  };
+  }, []);
 
-  const saveTeams = (next: Team[]) => {
-    setTeams(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_TEAMS, JSON.stringify(next));
-      notifyChange();
-    }
-  };
+  const saveTeams = useCallback(
+    (next: Team[]) => {
+      setTeams(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_TEAMS, JSON.stringify(next));
+        notifyChange();
+      }
+    },
+    [notifyChange],
+  );
 
-  const saveCompetitors = (next: CompetitorRecord[]) => {
-    setCompetitors(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_COMPETITORS, JSON.stringify(next));
-      notifyChange();
-    }
-  };
+  const saveCompetitors = useCallback(
+    (next: CompetitorRecord[]) => {
+      setCompetitors(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_COMPETITORS, JSON.stringify(next));
+        notifyChange();
+      }
+    },
+    [notifyChange],
+  );
 
-  const savePrograms = (next: ProgramRecord[]) => {
-    setPrograms(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(next));
-      notifyChange();
-    }
-  };
+  const savePrograms = useCallback(
+    (next: ProgramRecord[]) => {
+      setPrograms(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_PROGRAMS, JSON.stringify(next));
+        notifyChange();
+      }
+    },
+    [notifyChange],
+  );
 
-  const saveAdminResults = (next: AdminResultRecord[]) => {
-    setAdminResults(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_ADMIN_RESULTS, JSON.stringify(next));
+  const saveAdminResults = useCallback(
+    (next: AdminResultRecord[]) => {
+      setAdminResults(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_ADMIN_RESULTS, JSON.stringify(next));
 
-      // Also mirror to legacy results structure
-      const legacyMapped: Result[] = next.map((r) => ({
-        id: r.id,
-        program: r.program_name,
-        category: r.category,
-        stage: r.stage_type,
-        competitor: r.competitor_name,
-        chest: r.chest_no,
-        team: r.team_name ?? "Independent",
-        position: (r.position === "NIL" ? "3rd" : r.position) as "1st" | "2nd" | "3rd",
-        grade: r.grade,
-        score: Number(r.score) || 0,
-      }));
-      setResults(legacyMapped);
-      window.localStorage.setItem(STORAGE_RESULTS, JSON.stringify(legacyMapped));
+        // Also mirror to legacy results structure
+        const legacyMapped: Result[] = next.map((r) => ({
+          id: r.id,
+          program: r.program_name,
+          category: r.category,
+          stage: r.stage_type,
+          competitor: r.competitor_name,
+          chest: r.chest_no,
+          team: r.team_name ?? "Independent",
+          position: (r.position === "NIL" ? "3rd" : r.position) as "1st" | "2nd" | "3rd",
+          grade: r.grade,
+          score: Number(r.score) || 0,
+        }));
+        setResults(legacyMapped);
+        window.localStorage.setItem(STORAGE_RESULTS, JSON.stringify(legacyMapped));
 
-      notifyChange();
-    }
-  };
+        notifyChange();
+      }
+    },
+    [notifyChange],
+  );
 
-  const saveGeneralResults = (next: GeneralResultRecord[]) => {
-    setGeneralResults(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_GENERAL_RESULTS, JSON.stringify(next));
-      notifyChange();
-    }
-  };
+  const saveGeneralResults = useCallback(
+    (next: GeneralResultRecord[]) => {
+      setGeneralResults(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_GENERAL_RESULTS, JSON.stringify(next));
+        notifyChange();
+      }
+    },
+    [notifyChange],
+  );
 
-  const saveResults = (next: Result[]) => {
-    setResults(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_RESULTS, JSON.stringify(next));
-      notifyChange();
-    }
-  };
+  const saveResults = useCallback(
+    (next: Result[]) => {
+      setResults(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_RESULTS, JSON.stringify(next));
+        notifyChange();
+      }
+    },
+    [notifyChange],
+  );
 
-  const saveStatuses = (next: ProgramStatus[]) => {
-    setStatuses(next);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_STATUSES, JSON.stringify(next));
-      notifyChange();
-    }
-  };
+  const saveStatuses = useCallback(
+    (next: ProgramStatus[]) => {
+      setStatuses(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(STORAGE_STATUSES, JSON.stringify(next));
+        notifyChange();
+      }
+    },
+    [notifyChange],
+  );
 
   // Dynamic calculated data
   const rankedTeams = useMemo(
@@ -246,7 +267,7 @@ export function useFestivalData() {
     return Array.from(map.values()).filter((e) => e.first || e.second || e.third);
   }, [adminResults, generalResults]);
 
-  const resetAllData = () => {
+  const resetAllData = useCallback(() => {
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(STORAGE_TEAMS);
       window.localStorage.removeItem(STORAGE_COMPETITORS);
@@ -264,9 +285,9 @@ export function useFestivalData() {
     setResults(initialResults);
     setStatuses(initialStatuses);
     notifyChange();
-  };
+  }, [notifyChange]);
 
-  const exportAllData = () => {
+  const exportAllData = useCallback(() => {
     const backup = {
       version: "2026.1",
       exportedAt: new Date().toISOString(),
@@ -287,23 +308,26 @@ export function useFestivalData() {
     a.download = `noorun-ala-noor-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  };
+  }, [teams, competitors, programs, adminResults, generalResults, results, statuses]);
 
-  const importAllData = (jsonString: string): boolean => {
-    try {
-      const data = JSON.parse(jsonString);
-      if (!data) return false;
-      if (Array.isArray(data.teams)) saveTeams(data.teams);
-      if (Array.isArray(data.competitors)) saveCompetitors(data.competitors);
-      if (Array.isArray(data.programs)) savePrograms(data.programs);
-      if (Array.isArray(data.adminResults)) saveAdminResults(data.adminResults);
-      if (Array.isArray(data.generalResults)) saveGeneralResults(data.generalResults);
-      if (Array.isArray(data.statuses)) saveStatuses(data.statuses);
-      return true;
-    } catch {
-      return false;
-    }
-  };
+  const importAllData = useCallback(
+    (jsonString: string): boolean => {
+      try {
+        const data = JSON.parse(jsonString);
+        if (!data) return false;
+        if (Array.isArray(data.teams)) saveTeams(data.teams);
+        if (Array.isArray(data.competitors)) saveCompetitors(data.competitors);
+        if (Array.isArray(data.programs)) savePrograms(data.programs);
+        if (Array.isArray(data.adminResults)) saveAdminResults(data.adminResults);
+        if (Array.isArray(data.generalResults)) saveGeneralResults(data.generalResults);
+        if (Array.isArray(data.statuses)) saveStatuses(data.statuses);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [saveTeams, saveCompetitors, savePrograms, saveAdminResults, saveGeneralResults, saveStatuses],
+  );
 
   return {
     teams,
