@@ -35,6 +35,9 @@ function loadFromStorage<T>(key: string, fallback: T): T {
     const raw = window.localStorage.getItem(key);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
+    if (Array.isArray(fallback) && !Array.isArray(parsed)) {
+      return fallback;
+    }
     return parsed ?? fallback;
   } catch (err) {
     console.error(`Failed to read key "${key}" from localStorage:`, err);
@@ -43,14 +46,25 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 }
 
 export function useFestivalData() {
-  const [teams, setTeams] = useState<Team[]>(initialTeams);
-  const [competitors, setCompetitors] = useState<CompetitorRecord[]>(initialCompetitorRecords);
-  const [programs, setPrograms] = useState<ProgramRecord[]>(initialProgramRecords);
-  const [adminResults, setAdminResults] = useState<AdminResultRecord[]>(initialAdminResults);
-  const [generalResults, setGeneralResults] =
-    useState<GeneralResultRecord[]>(initialGeneralResults);
-  const [results, setResults] = useState<Result[]>(initialResults);
-  const [statuses, setStatuses] = useState<ProgramStatus[]>(initialStatuses);
+  const [teams, setTeams] = useState<Team[]>(() => loadFromStorage(STORAGE_TEAMS, initialTeams));
+  const [competitors, setCompetitors] = useState<CompetitorRecord[]>(() =>
+    loadFromStorage(STORAGE_COMPETITORS, initialCompetitorRecords),
+  );
+  const [programs, setPrograms] = useState<ProgramRecord[]>(() =>
+    loadFromStorage(STORAGE_PROGRAMS, initialProgramRecords),
+  );
+  const [adminResults, setAdminResults] = useState<AdminResultRecord[]>(() =>
+    loadFromStorage(STORAGE_ADMIN_RESULTS, initialAdminResults),
+  );
+  const [generalResults, setGeneralResults] = useState<GeneralResultRecord[]>(() =>
+    loadFromStorage(STORAGE_GENERAL_RESULTS, initialGeneralResults),
+  );
+  const [results, setResults] = useState<Result[]>(() =>
+    loadFromStorage(STORAGE_RESULTS, initialResults),
+  );
+  const [statuses, setStatuses] = useState<ProgramStatus[]>(() =>
+    loadFromStorage(STORAGE_STATUSES, initialStatuses),
+  );
 
   const reloadAll = useCallback(() => {
     setTeams(loadFromStorage(STORAGE_TEAMS, initialTeams));
@@ -63,9 +77,6 @@ export function useFestivalData() {
   }, []);
 
   useEffect(() => {
-    // Initial sync
-    reloadAll();
-
     const handleSync = () => {
       reloadAll();
     };
