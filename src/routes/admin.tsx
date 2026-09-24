@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   ShieldCheck,
+  Sparkles,
   Trash2,
   Trophy,
   X,
