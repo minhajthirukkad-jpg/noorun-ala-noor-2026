@@ -13,9 +13,10 @@ export function getRouter() {
 
   let basepath: string | undefined = undefined;
   if (typeof window !== "undefined") {
-    if (window.location.pathname.startsWith("/noorun-ala-noor-2026/docs")) {
+    const p = window.location.pathname.toLowerCase();
+    if (p.startsWith("/noorun-ala-noor-2026/docs")) {
       basepath = "/noorun-ala-noor-2026/docs";
-    } else if (window.location.pathname.startsWith("/noorun-ala-noor-2026")) {
+    } else if (p.startsWith("/noorun-ala-noor-2026")) {
       basepath = "/noorun-ala-noor-2026";
     }
   }

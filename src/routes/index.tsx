@@ -5,7 +5,10 @@ import {
   CheckCircle2,
   Clock3,
   Crown,
+  LayoutGrid,
+  List,
   Lock,
+  Medal,
   Search,
   Sparkles,
   Trophy,
@@ -54,6 +57,8 @@ function IndexPage() {
     useFestivalData();
 
   const [secretModalOpen, setSecretModalOpen] = useState(false);
+  const [positionFilter, setPositionFilter] = useState<"all" | "1st" | "2nd" | "3rd">("all");
+  const [resultsView, setResultsView] = useState<"podium" | "table">("podium");
 
   // Trigger surprising secret rank reveal animation on first site opening in this session
   useEffect(() => {
@@ -71,6 +76,61 @@ function IndexPage() {
     () => Math.max(...rankedTeams.map((t) => t.grand), 1),
     [rankedTeams],
   );
+
+  // Group outed results by program for the Latest Results podium view (1st, 2nd, 3rd positions)
+  const groupedProgramResults = useMemo(() => {
+    type WinnerEntry = {
+      competitor: string;
+      chest_no: string;
+      team_name: string;
+      grade: string;
+      score: number;
+    };
+    type ProgramPodium = {
+      programName: string;
+      category: string;
+      stageType: string;
+      first?: WinnerEntry;
+      second?: WinnerEntry;
+      third?: WinnerEntry;
+    };
+
+    const map = new Map<string, ProgramPodium>();
+
+    for (const r of outedResults) {
+      const key = `${r.program_name}|${r.stage_type}`;
+      const entry = map.get(key) || {
+        programName: r.program_name,
+        category: r.category,
+        stageType: r.stage_type,
+      };
+
+      const winnerData: WinnerEntry = {
+        competitor: r.competitor,
+        chest_no: r.chest_no,
+        team_name: r.team_name,
+        grade: r.grade,
+        score: r.score,
+      };
+
+      if (r.position === "1st" && !entry.first) {
+        entry.first = winnerData;
+      } else if (r.position === "2nd" && !entry.second) {
+        entry.second = winnerData;
+      } else if (r.position === "3rd" && !entry.third) {
+        entry.third = winnerData;
+      }
+
+      map.set(key, entry);
+    }
+
+    return Array.from(map.values());
+  }, [outedResults]);
+
+  const filteredOutedResults = useMemo(() => {
+    if (positionFilter === "all") return outedResults;
+    return outedResults.filter((r) => r.position === positionFilter);
+  }, [outedResults, positionFilter]);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-6">
@@ -176,7 +236,7 @@ function IndexPage() {
                     </span>
                   )}
                   {item.third && (
-                    <span className="flex items-center gap-1 rounded-full bg-amber-900/15 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300 border border-amber-800/30">
+                    <span className="flex items-center gap-1 rounded-full bg-amber-800/15 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300 border border-amber-700/40">
                       <Award className="size-3 text-amber-700 dark:text-amber-400" /> 3rd:{" "}
                       {item.third.name}
                     </span>
@@ -254,18 +314,240 @@ function IndexPage() {
           )}
         </section>
 
-        {/* 2. Outed Result Table */}
-        <section className="glass-card p-5" aria-label="Outed Results">
-          <div className="mb-4 flex items-center gap-2">
-            <CheckCircle2 className="size-5 text-primary" />
-            <h2 className="text-lg font-semibold">Outed Result Table</h2>
+        {/* 2. Latest / Outed Results Section with 1st, 2nd, and 3rd Positions */}
+        <section className="glass-card p-5" aria-label="Latest Outed Results">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="size-5 text-primary" />
+              <div>
+                <h2 className="text-lg font-semibold">Latest Results</h2>
+                <p className="text-xs text-muted-foreground">
+                  Programs with 1st, 2nd, and 3rd position winners
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Position Filter Buttons */}
+              <div className="inline-flex rounded-lg border border-border bg-background/80 p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setPositionFilter("all")}
+                  className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+                    positionFilter === "all"
+                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPositionFilter("1st")}
+                  className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                    positionFilter === "1st"
+                      ? "bg-amber-500 text-neutral-950 font-bold shadow-xs"
+                      : "text-muted-foreground hover:text-amber-500"
+                  }`}
+                >
+                  <Trophy className="size-3" /> 1st
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPositionFilter("2nd")}
+                  className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                    positionFilter === "2nd"
+                      ? "bg-slate-400 text-neutral-950 font-bold shadow-xs"
+                      : "text-muted-foreground hover:text-slate-400"
+                  }`}
+                >
+                  <Award className="size-3" /> 2nd
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPositionFilter("3rd")}
+                  className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                    positionFilter === "3rd"
+                      ? "bg-amber-700 text-white font-bold shadow-xs"
+                      : "text-muted-foreground hover:text-amber-600"
+                  }`}
+                >
+                  <Medal className="size-3" /> 3rd
+                </button>
+              </div>
+
+              {/* View Switcher: Podium Cards vs Detailed Table */}
+              <div className="inline-flex rounded-lg border border-border bg-background/80 p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setResultsView("podium")}
+                  className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                    resultsView === "podium"
+                      ? "bg-muted text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Podium Cards View (1st · 2nd · 3rd)"
+                >
+                  <LayoutGrid className="size-3.5" /> Podium
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResultsView("table")}
+                  className={`flex items-center gap-1 rounded-md px-2.5 py-1 font-medium transition-colors ${
+                    resultsView === "table"
+                      ? "bg-muted text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Table View"
+                >
+                  <List className="size-3.5" /> Table
+                </button>
+              </div>
+            </div>
           </div>
 
           {outedResults.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
               No results declared yet.
             </p>
+          ) : resultsView === "podium" && positionFilter === "all" ? (
+            /* Program Podium Cards: Side-by-side 1st, 2nd, and 3rd Positions */
+            <div className="grid gap-4 md:grid-cols-2">
+              {groupedProgramResults.map((prog) => (
+                <div
+                  key={`${prog.programName}-${prog.stageType}`}
+                  className="rounded-2xl border border-border/80 bg-background/60 p-4 shadow-sm transition-all hover:border-primary/40"
+                >
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-border/50 pb-2.5">
+                    <div>
+                      <h3 className="font-display text-sm font-bold text-foreground">
+                        {prog.programName}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground">
+                        {prog.category} · {prog.stageType}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                      Outed
+                    </span>
+                  </div>
+
+                  {/* 1st, 2nd, 3rd Positions in Grid */}
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    {/* 1st Position */}
+                    <div className="flex flex-col justify-between rounded-xl border border-amber-500/30 bg-amber-500/5 p-2.5">
+                      <div>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                          <Trophy className="size-3 text-amber-500" /> 1st Position
+                        </span>
+                        {prog.first ? (
+                          <div className="mt-2">
+                            <p className="truncate text-xs font-bold text-foreground">
+                              {prog.first.competitor}
+                            </p>
+                            {prog.first.chest_no !== "—" && (
+                              <p className="text-[11px] font-mono text-muted-foreground">
+                                #{prog.first.chest_no}
+                              </p>
+                            )}
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {prog.first.team_name}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="mt-2 text-xs italic text-muted-foreground">Not declared</p>
+                        )}
+                      </div>
+                      {prog.first && (
+                        <div className="mt-2 flex items-center justify-between border-t border-amber-500/20 pt-1.5 text-[11px]">
+                          <span className="text-muted-foreground">
+                            {prog.first.grade !== "NIL" ? `Gr ${prog.first.grade}` : ""}
+                          </span>
+                          <span className="font-black text-amber-700 dark:text-amber-400">
+                            {prog.first.score} pts
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 2nd Position */}
+                    <div className="flex flex-col justify-between rounded-xl border border-slate-500/30 bg-slate-500/5 p-2.5">
+                      <div>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/20 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                          <Award className="size-3 text-slate-400" /> 2nd Position
+                        </span>
+                        {prog.second ? (
+                          <div className="mt-2">
+                            <p className="truncate text-xs font-bold text-foreground">
+                              {prog.second.competitor}
+                            </p>
+                            {prog.second.chest_no !== "—" && (
+                              <p className="text-[11px] font-mono text-muted-foreground">
+                                #{prog.second.chest_no}
+                              </p>
+                            )}
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {prog.second.team_name}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="mt-2 text-xs italic text-muted-foreground">Not declared</p>
+                        )}
+                      </div>
+                      {prog.second && (
+                        <div className="mt-2 flex items-center justify-between border-t border-slate-500/20 pt-1.5 text-[11px]">
+                          <span className="text-muted-foreground">
+                            {prog.second.grade !== "NIL" ? `Gr ${prog.second.grade}` : ""}
+                          </span>
+                          <span className="font-black text-slate-700 dark:text-slate-300">
+                            {prog.second.score} pts
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 3rd Position */}
+                    <div className="flex flex-col justify-between rounded-xl border border-amber-700/30 bg-amber-800/5 p-2.5">
+                      <div>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-800/20 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                          <Medal className="size-3 text-amber-700 dark:text-amber-400" /> 3rd
+                          Position
+                        </span>
+                        {prog.third ? (
+                          <div className="mt-2">
+                            <p className="truncate text-xs font-bold text-foreground">
+                              {prog.third.competitor}
+                            </p>
+                            {prog.third.chest_no !== "—" && (
+                              <p className="text-[11px] font-mono text-muted-foreground">
+                                #{prog.third.chest_no}
+                              </p>
+                            )}
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {prog.third.team_name}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="mt-2 text-xs italic text-muted-foreground">Not declared</p>
+                        )}
+                      </div>
+                      {prog.third && (
+                        <div className="mt-2 flex items-center justify-between border-t border-amber-800/20 pt-1.5 text-[11px]">
+                          <span className="text-muted-foreground">
+                            {prog.third.grade !== "NIL" ? `Gr ${prog.third.grade}` : ""}
+                          </span>
+                          <span className="font-black text-amber-800 dark:text-amber-400">
+                            {prog.third.score} pts
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
+            /* Table View with explicit 1st, 2nd, 3rd Position Badges */
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -280,7 +562,7 @@ function IndexPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {outedResults.slice(0, 20).map((r) => (
+                  {filteredOutedResults.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.program_name}</TableCell>
                       <TableCell className="hidden sm:table-cell text-muted-foreground">
@@ -299,7 +581,24 @@ function IndexPage() {
                         <p className="text-xs text-muted-foreground">{r.team_name}</p>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold ${
+                            r.position === "1st"
+                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                              : r.position === "2nd"
+                                ? "bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30"
+                                : r.position === "3rd"
+                                  ? "bg-amber-800/15 text-amber-800 dark:text-amber-300 border border-amber-700/40"
+                                  : "bg-secondary text-secondary-foreground"
+                          }`}
+                        >
+                          {r.position === "1st" ? (
+                            <Trophy className="size-3 text-amber-500" />
+                          ) : r.position === "2nd" ? (
+                            <Award className="size-3 text-slate-400" />
+                          ) : r.position === "3rd" ? (
+                            <Medal className="size-3 text-amber-700 dark:text-amber-400" />
+                          ) : null}
                           {r.position}
                         </span>
                       </TableCell>

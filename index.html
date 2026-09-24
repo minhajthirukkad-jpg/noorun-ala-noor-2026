@@ -13,7 +13,7 @@
       property="og:description"
       content="Official festival scoreboard, real-time live program status, searchable results, and admin management for Noorun Ala Noor Meelad Fest 2026."
     />
-    <link rel="icon" type="image/x-icon" href="./docs/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
     <script type="text/javascript">
       // Clean up any stale /dist/ URL loops from browser history
       (function (l) {
@@ -32,7 +32,7 @@
           return;
         }
         // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
-        if (l.search[1] === "/") {
+        if (l.search && l.search[1] === "/") {
           var decoded = l.search
             .slice(1)
             .split("&")
@@ -40,12 +40,18 @@
               return s.replace(/~and~/g, "&");
             })
             .join("?");
-          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+          var basePath = l.pathname.replace(/\/$/, "");
+          var subPath = decoded.startsWith("/") ? decoded : "/" + decoded;
+          window.history.replaceState(
+            null,
+            null,
+            basePath + subPath + l.hash,
+          );
         }
       })(window.location);
     </script>
-    <script type="module" crossorigin src="./docs/assets/client.js"></script>
-    <link rel="stylesheet" crossorigin href="./docs/assets/styles.css" />
+    <script type="module" crossorigin src="./assets/client.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/styles.css" />
   </head>
   <body class="bg-background text-foreground antialiased min-h-screen">
     <div id="root"></div>

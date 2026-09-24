@@ -32,7 +32,7 @@
           return;
         }
         // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
-        if (l.search[1] === "/") {
+        if (l.search && l.search[1] === "/") {
           var decoded = l.search
             .slice(1)
             .split("&")
@@ -40,10 +40,12 @@
               return s.replace(/~and~/g, "&");
             })
             .join("?");
+          var basePath = l.pathname.replace(/\/$/, "");
+          var subPath = decoded.startsWith("/") ? decoded : "/" + decoded;
           window.history.replaceState(
             null,
             null,
-            l.pathname.slice(0, -1) + decoded + l.hash,
+            basePath + subPath + l.hash,
           );
         }
       })(window.location);

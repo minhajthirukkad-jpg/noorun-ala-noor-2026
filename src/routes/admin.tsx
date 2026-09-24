@@ -1226,12 +1226,51 @@ function ResultsTab({
             </Select>
           </div>
 
-          {/* Position */}
+          {/* Position with Quick Select Buttons */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Position</label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground">Position</label>
+              <div className="flex gap-1">
+                {(["1st", "2nd", "3rd", "NIL"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      setPosition(p);
+                      if (!score) {
+                        if (p === "1st") setScore("7");
+                        else if (p === "2nd") setScore("5");
+                        else if (p === "3rd") setScore("3");
+                      }
+                    }}
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-colors ${
+                      position === p
+                        ? p === "1st"
+                          ? "bg-amber-500 text-black"
+                          : p === "2nd"
+                            ? "bg-slate-400 text-black"
+                            : p === "3rd"
+                              ? "bg-amber-700 text-white"
+                              : "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
             <Select
               value={position}
-              onValueChange={(val) => setPosition(val as "1st" | "2nd" | "3rd" | "NIL")}
+              onValueChange={(val) => {
+                const p = val as "1st" | "2nd" | "3rd" | "NIL";
+                setPosition(p);
+                if (!score) {
+                  if (p === "1st") setScore("7");
+                  else if (p === "2nd") setScore("5");
+                  else if (p === "3rd") setScore("3");
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Position" />
@@ -1333,7 +1372,17 @@ function ResultsTab({
                   {res.category} · {res.stage_type}
                 </span>
                 <span className="text-sm text-muted-foreground">{res.team_name ?? "No team"}</span>
-                <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold ${
+                    res.position === "1st"
+                      ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                      : res.position === "2nd"
+                        ? "bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30"
+                        : res.position === "3rd"
+                          ? "bg-amber-800/15 text-amber-800 dark:text-amber-300 border border-amber-700/40"
+                          : "bg-secondary text-secondary-foreground"
+                  }`}
+                >
                   {res.position} {res.grade !== "NIL" && `· Gr ${res.grade}`}
                 </span>
                 <span className="font-bold text-primary text-sm">{res.score} pts</span>
@@ -1506,21 +1555,64 @@ function GeneralResultsTab({
             </SelectContent>
           </Select>
 
-          <Select
-            value={position}
-            onValueChange={(val) => setPosition(val as "1st" | "2nd" | "3rd" | "NIL")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Position" />
-            </SelectTrigger>
-            <SelectContent>
-              {POSITIONS.map((pos) => (
-                <SelectItem key={pos} value={pos}>
-                  {pos}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Position with Quick Select Buttons */}
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground">Position</label>
+              <div className="flex gap-1">
+                {(["1st", "2nd", "3rd", "NIL"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      setPosition(p);
+                      if (!score) {
+                        if (p === "1st") setScore("10");
+                        else if (p === "2nd") setScore("8");
+                        else if (p === "3rd") setScore("5");
+                      }
+                    }}
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-colors ${
+                      position === p
+                        ? p === "1st"
+                          ? "bg-amber-500 text-black"
+                          : p === "2nd"
+                            ? "bg-slate-400 text-black"
+                            : p === "3rd"
+                              ? "bg-amber-700 text-white"
+                              : "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Select
+              value={position}
+              onValueChange={(val) => {
+                const p = val as "1st" | "2nd" | "3rd" | "NIL";
+                setPosition(p);
+                if (!score) {
+                  if (p === "1st") setScore("10");
+                  else if (p === "2nd") setScore("8");
+                  else if (p === "3rd") setScore("5");
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Position" />
+              </SelectTrigger>
+              <SelectContent>
+                {POSITIONS.map((pos) => (
+                  <SelectItem key={pos} value={pos}>
+                    {pos}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <Select value={grade} onValueChange={(val) => setGrade(val as "A" | "B" | "C" | "NIL")}>
             <SelectTrigger>
@@ -1595,7 +1687,17 @@ function GeneralResultsTab({
                   {res.stage_type}
                 </span>
                 <span className="text-sm text-muted-foreground">{res.team_name ?? "No team"}</span>
-                <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold ${
+                    res.position === "1st"
+                      ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                      : res.position === "2nd"
+                        ? "bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-500/30"
+                        : res.position === "3rd"
+                          ? "bg-amber-800/15 text-amber-800 dark:text-amber-300 border border-amber-700/40"
+                          : "bg-secondary text-secondary-foreground"
+                  }`}
+                >
                   {res.position} {res.grade !== "NIL" && `· Gr ${res.grade}`}
                 </span>
                 <span className="font-bold text-primary text-sm">{res.score} pts</span>

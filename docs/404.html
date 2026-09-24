@@ -4,39 +4,8 @@
     <meta charset="utf-8" />
     <title>Noorun Ala Noor Meelad Fest 2026 | Guideon Learning Hub</title>
     <script type="text/javascript">
-      var l = window.location;
-      // Immediately break any /dist/ redirect loops and send to root
-      if (l.pathname.includes("/dist") || l.search.includes("/dist")) {
-        l.replace(
-          l.protocol +
-            "//" +
-            l.hostname +
-            (l.port ? ":" + l.port : "") +
-            "/noorun-ala-noor-2026/",
-        );
-      } else {
-        var pathSegmentsToKeep = 1;
-        var p = l.pathname
-          .slice(1)
-          .split("/")
-          .slice(pathSegmentsToKeep)
-          .join("/");
-        if (p && !p.startsWith("dist")) {
-          l.replace(
-            l.protocol +
-              "//" +
-              l.hostname +
-              (l.port ? ":" + l.port : "") +
-              l.pathname
-                .split("/")
-                .slice(0, 1 + pathSegmentsToKeep)
-                .join("/") +
-              "/?/" +
-              p.replace(/&/g, "~and~") +
-              (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
-              l.hash,
-          );
-        } else {
+      (function (l) {
+        if (l.pathname.includes("/dist") || l.search.includes("/dist")) {
           l.replace(
             l.protocol +
               "//" +
@@ -44,8 +13,40 @@
               (l.port ? ":" + l.port : "") +
               "/noorun-ala-noor-2026/",
           );
+          return;
         }
-      }
+
+        var pathSegments = l.pathname.slice(1).split("/");
+        var repoName = "noorun-ala-noor-2026";
+        var isDocs = pathSegments[1] === "docs";
+        var base = isDocs ? "/" + repoName + "/docs" : "/" + repoName;
+
+        var subSegments = isDocs ? pathSegments.slice(2) : pathSegments.slice(1);
+        var p = subSegments.join("/");
+
+        if (p && !p.startsWith("dist")) {
+          var redirectUrl =
+            l.protocol +
+            "//" +
+            l.hostname +
+            (l.port ? ":" + l.port : "") +
+            base +
+            "/?/" +
+            p.replace(/&/g, "~and~") +
+            (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
+            l.hash;
+          l.replace(redirectUrl);
+        } else {
+          l.replace(
+            l.protocol +
+              "//" +
+              l.hostname +
+              (l.port ? ":" + l.port : "") +
+              base +
+              "/",
+          );
+        }
+      })(window.location);
     </script>
   </head>
   <body></body>

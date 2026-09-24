@@ -40,6 +40,7 @@ function CheckResultsPage() {
   const [category, setCategory] = useState("all");
   const [stage, setStage] = useState("all");
   const [team, setTeam] = useState("all");
+  const [position, setPosition] = useState("all");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
@@ -49,6 +50,7 @@ function CheckResultsPage() {
       if (category !== "all" && result.category !== category) return false;
       if (stage !== "all" && result.stage_type !== stage) return false;
       if (team !== "all" && result.team_name !== team) return false;
+      if (position !== "all" && result.position !== position) return false;
       if (q) {
         const haystack =
           `${result.program_name} ${result.competitor} ${result.chest_no} ${result.team_name}`.toLowerCase();
@@ -56,7 +58,7 @@ function CheckResultsPage() {
       }
       return true;
     });
-  }, [outedResults, category, stage, team, query]);
+  }, [outedResults, category, stage, team, position, query]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -95,7 +97,7 @@ function CheckResultsPage() {
 
       {/* Filters */}
       <section
-        className="glass-card mb-6 grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4"
+        className="glass-card mb-6 grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5"
         aria-label="Result filters"
       >
         <FilterSelect
@@ -116,6 +118,12 @@ function CheckResultsPage() {
           label="All Team"
           options={teams.map((t) => t.name)}
         />
+        <FilterSelect
+          value={position}
+          onChange={(v) => handleFilterChange(setPosition, v)}
+          label="All Positions"
+          options={["1st", "2nd", "3rd"]}
+        />
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -125,7 +133,7 @@ function CheckResultsPage() {
               setQuery(e.target.value);
               setPage(1);
             }}
-            placeholder="Search name / chest no / program"
+            placeholder="Search name / chest / program"
           />
         </div>
       </section>
