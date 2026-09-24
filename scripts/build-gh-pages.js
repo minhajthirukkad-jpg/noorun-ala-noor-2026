@@ -4,45 +4,44 @@ import { execSync } from "node:child_process";
 
 const rootDir = process.cwd();
 const distClientDir = path.join(rootDir, "dist-client");
+const distDir = path.join(rootDir, "dist");
+const distAssetsDir = path.join(distDir, "assets");
 const docsDir = path.join(rootDir, "docs");
 const docsAssetsDir = path.join(docsDir, "assets");
 
 console.log("Building client SPA for GitHub Pages & static hosting...");
 execSync("npx vite build --config vite.client.config.ts", { stdio: "inherit" });
 
+if (!fs.existsSync(distAssetsDir)) {
+  fs.mkdirSync(distAssetsDir, { recursive: true });
+}
 if (!fs.existsSync(docsAssetsDir)) {
   fs.mkdirSync(docsAssetsDir, { recursive: true });
 }
-// 1. Copy built assets to docs/assets
+
+// 1. Copy built assets to dist/assets and docs/assets
 if (fs.existsSync(path.join(distClientDir, "assets"))) {
+  fs.cpSync(path.join(distClientDir, "assets"), distAssetsDir, { recursive: true });
   fs.cpSync(path.join(distClientDir, "assets"), docsAssetsDir, { recursive: true });
 }
 
-// 2. Copy public assets (favicon, images, etc.) to docs
+// 2. Copy public assets (favicon, images, etc.) to dist, docs, and root
 if (fs.existsSync(path.join(rootDir, "public"))) {
+  fs.cpSync(path.join(rootDir, "public"), distDir, { recursive: true });
   fs.cpSync(path.join(rootDir, "public"), docsDir, { recursive: true });
 }
 
-// 3. Ensure legacy file aliases exist in docs/assets to prevent cache misses
-if (fs.existsSync(path.join(docsAssetsDir, "client.js"))) {
-  fs.copyFileSync(
-    path.join(docsAssetsDir, "client.js"),
-    path.join(docsAssetsDir, "client-BNaYxvc8.js"),
-  );
-  fs.copyFileSync(
-    path.join(docsAssetsDir, "client.js"),
-    path.join(docsAssetsDir, "index-BNaYxvc8.js"),
-  );
-  fs.copyFileSync(
-    path.join(docsAssetsDir, "client.js"),
-    path.join(docsAssetsDir, "client-DdOCxeiY.js"),
-  );
-}
-if (fs.existsSync(path.join(docsAssetsDir, "styles.css"))) {
-  fs.copyFileSync(
-    path.join(docsAssetsDir, "styles.css"),
-    path.join(docsAssetsDir, "styles-CKHbzW9t.css"),
-  );
+// 3. Ensure legacy file aliases exist in dist/assets and docs/assets to prevent cache misses
+const assetDirs = [distAssetsDir, docsAssetsDir];
+for (const dir of assetDirs) {
+  if (fs.existsSync(path.join(dir, "client.js"))) {
+    fs.copyFileSync(path.join(dir, "client.js"), path.join(dir, "client-BNaYxvc8.js"));
+    fs.copyFileSync(path.join(dir, "client.js"), path.join(dir, "index-BNaYxvc8.js"));
+    fs.copyFileSync(path.join(dir, "client.js"), path.join(dir, "client-DdOCxeiY.js"));
+  }
+  if (fs.existsSync(path.join(dir, "styles.css"))) {
+    fs.copyFileSync(path.join(dir, "styles.css"), path.join(dir, "styles-CKHbzW9t.css"));
+  }
 }
 
 // 4. HTML Template for index.html (SPA with query-param router restore)
@@ -163,13 +162,28 @@ const get404Html = () => `<!doctype html>
 </html>
 `;
 
-// Write index.html and 404.html to docs/
+// Write index.html, 404.html, .nojekyll to dist/ (Required by AI Studio build uploader)
+fs.writeFileSync(path.join(distDir, "index.html"), getIndexHtml("./"), "utf8");
+fs.writeFileSync(path.join(distDir, "404.html"), get404Html(), "utf8");
+fs.writeFileSync(path.join(distDir, ".nojekyll"), "", "utf8");
+
+// Sub-route pages in dist/
+const routes = ["admin", "check-results", "unlock"];
+for (const r of routes) {
+  const distRouteDir = path.join(distDir, r);
+  if (!fs.existsSync(distRouteDir)) {
+    fs.mkdirSync(distRouteDir, { recursive: true });
+  }
+  fs.writeFileSync(path.join(distRouteDir, "index.html"), getIndexHtml("../"), "utf8");
+  fs.writeFileSync(path.join(distDir, `${r}.html`), getIndexHtml("./"), "utf8");
+}
+
+// Write index.html, 404.html, .nojekyll to docs/
 fs.writeFileSync(path.join(docsDir, "index.html"), getIndexHtml("./"), "utf8");
 fs.writeFileSync(path.join(docsDir, "404.html"), get404Html(), "utf8");
 fs.writeFileSync(path.join(docsDir, ".nojekyll"), "", "utf8");
 
 // Sub-route pages in docs/
-const routes = ["admin", "check-results", "unlock"];
 for (const r of routes) {
   const routeDir = path.join(docsDir, r);
   if (!fs.existsSync(routeDir)) {
@@ -194,7 +208,13 @@ for (const r of routes) {
   fs.writeFileSync(path.join(rootDir, `${r}.html`), getIndexHtml("./docs/"), "utf8");
 }
 
+// Also populate .output/public with static files if .output/public exists
+const outputPublicDir = path.join(rootDir, ".output", "public");
+if (fs.existsSync(outputPublicDir)) {
+  fs.cpSync(distDir, outputPublicDir, { recursive: true });
+}
+
 // Clean temporary dist-client folder
 fs.rmSync(distClientDir, { recursive: true, force: true });
 
-console.log("GitHub Pages static build complete: root and docs/ ready.");
+console.log("Static build complete: dist/, docs/, and root are populated.");

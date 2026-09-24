@@ -173,30 +173,69 @@ function AdminPage() {
             Enter the password to access administrative features
           </p>
 
-          <div className="relative mt-4">
-            <Input
-              type={showPassword ? "text" : "password"}
-              className="pr-10"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
-              autoFocus
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </button>
-          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleUnlock();
+            }}
+            className="mt-4 space-y-3"
+          >
+            <div className="relative">
+              <Input
+                id="admin-password-input"
+                name="admin_password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                className="pr-10 text-center font-mono tracking-wider"
+                placeholder="Enter password (MNMF2K26)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
 
-          <Button className="mt-3.5 w-full font-medium" onClick={handleUnlock}>
-            <KeyRound className="size-4 mr-1.5" /> Unlock Panel
-          </Button>
+            <Button type="submit" className="w-full font-medium">
+              <KeyRound className="size-4 mr-1.5" /> Unlock Panel
+            </Button>
+          </form>
+
+          {/* Quick 1-click Unlock Helper */}
+          <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3 text-left">
+            <div className="flex items-center justify-between text-xs font-semibold text-primary">
+              <span>Festival Passcode</span>
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground font-bold">
+                {DEFAULT_FEST_PASSWORD}
+              </code>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2.5 w-full text-xs font-semibold gap-1.5 border-primary/30 hover:bg-primary/10"
+              onClick={() => {
+                setPassword(DEFAULT_FEST_PASSWORD);
+                if (checkAdminPassword(DEFAULT_FEST_PASSWORD)) {
+                  setAdminUnlocked(true);
+                  setUnlocked(true);
+                  toast.success("Admin access granted");
+                }
+              }}
+            >
+              <Sparkles className="size-3.5 text-primary" />
+              Quick Unlock with Default Key
+            </Button>
+          </div>
 
           <Link
             to="/"
