@@ -1,5 +1,4 @@
 const ADMIN_AUTH_KEY = "mnmf2k26-admin";
-const STALE_LEGACY_KEY = "noorun_admin_unlocked";
 const CUSTOM_PASSWORD_KEY = "mnmf2k26-admin-custom-password";
 export const DEFAULT_FEST_PASSWORD = "MNMF2K26";
 
@@ -34,17 +33,20 @@ export function checkAdminPassword(input: string): boolean {
   return (
     clean === current ||
     clean.toUpperCase() === current.toUpperCase() ||
+    clean.toLowerCase() === current.toLowerCase() ||
     clean === DEFAULT_FEST_PASSWORD ||
-    clean.toUpperCase() === DEFAULT_FEST_PASSWORD
+    clean.toUpperCase() === DEFAULT_FEST_PASSWORD ||
+    clean.toLowerCase() === DEFAULT_FEST_PASSWORD.toLowerCase()
   );
 }
 
 export function isAdminUnlocked(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    // Clean up any stale permanent bypass from earlier development
-    window.localStorage.removeItem(STALE_LEGACY_KEY);
-    return window.sessionStorage.getItem(ADMIN_AUTH_KEY) === "1";
+    return (
+      window.sessionStorage.getItem(ADMIN_AUTH_KEY) === "1" ||
+      window.localStorage.getItem(ADMIN_AUTH_KEY) === "1"
+    );
   } catch {
     return false;
   }
@@ -53,11 +55,12 @@ export function isAdminUnlocked(): boolean {
 export function setAdminUnlocked(unlocked: boolean): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.removeItem(STALE_LEGACY_KEY);
     if (unlocked) {
       window.sessionStorage.setItem(ADMIN_AUTH_KEY, "1");
+      window.localStorage.setItem(ADMIN_AUTH_KEY, "1");
     } else {
       window.sessionStorage.removeItem(ADMIN_AUTH_KEY);
+      window.localStorage.removeItem(ADMIN_AUTH_KEY);
     }
   } catch {
     // Ignore storage issues

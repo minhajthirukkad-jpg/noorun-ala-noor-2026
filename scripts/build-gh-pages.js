@@ -163,14 +163,36 @@ const get404Html = () => `<!doctype html>
 </html>
 `;
 
-// Write index.html and 404.html to both root and docs/
+// Write index.html and 404.html to docs/
 fs.writeFileSync(path.join(docsDir, "index.html"), getIndexHtml("./"), "utf8");
 fs.writeFileSync(path.join(docsDir, "404.html"), get404Html(), "utf8");
 fs.writeFileSync(path.join(docsDir, ".nojekyll"), "", "utf8");
 
+// Sub-route pages in docs/
+const routes = ["admin", "check-results", "unlock"];
+for (const r of routes) {
+  const routeDir = path.join(docsDir, r);
+  if (!fs.existsSync(routeDir)) {
+    fs.mkdirSync(routeDir, { recursive: true });
+  }
+  fs.writeFileSync(path.join(routeDir, "index.html"), getIndexHtml("../"), "utf8");
+  fs.writeFileSync(path.join(docsDir, `${r}.html`), getIndexHtml("./"), "utf8");
+}
+
+// Write index.html and 404.html to root
 fs.writeFileSync(path.join(rootDir, "index.html"), getIndexHtml("./docs/"), "utf8");
 fs.writeFileSync(path.join(rootDir, "404.html"), get404Html(), "utf8");
 fs.writeFileSync(path.join(rootDir, ".nojekyll"), "", "utf8");
+
+// Sub-route pages in root
+for (const r of routes) {
+  const rootRouteDir = path.join(rootDir, r);
+  if (!fs.existsSync(rootRouteDir)) {
+    fs.mkdirSync(rootRouteDir, { recursive: true });
+  }
+  fs.writeFileSync(path.join(rootRouteDir, "index.html"), getIndexHtml("../docs/"), "utf8");
+  fs.writeFileSync(path.join(rootDir, `${r}.html`), getIndexHtml("./docs/"), "utf8");
+}
 
 // Clean temporary dist-client folder
 fs.rmSync(distClientDir, { recursive: true, force: true });

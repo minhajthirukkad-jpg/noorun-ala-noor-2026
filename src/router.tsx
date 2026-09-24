@@ -28,6 +28,7 @@ export function getRouter() {
       queryClient,
     },
     scrollRestoration: true,
+    trailingSlash: "preserve",
   });
 
   return router;
