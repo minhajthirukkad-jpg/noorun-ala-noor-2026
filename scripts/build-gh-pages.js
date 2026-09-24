@@ -97,8 +97,8 @@ const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
         }
       })(window.location);
     </script>
-    <script type="module" crossorigin src="${assetPrefix}assets/client.js"></script>
-    <link rel="stylesheet" crossorigin href="${assetPrefix}assets/styles.css" />
+    <script type="module" crossorigin src="${assetPrefix}assets/client.js?v=2.2.0"></script>
+    <link rel="stylesheet" crossorigin href="${assetPrefix}assets/styles.css?v=2.2.0" />
   </head>
   <body class="bg-background text-foreground antialiased min-h-screen">
     <div id="root"></div>

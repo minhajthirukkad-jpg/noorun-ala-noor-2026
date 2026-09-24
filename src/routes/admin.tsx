@@ -110,6 +110,18 @@ function AdminPage() {
   useEffect(() => {
     if (isAdminUnlocked()) {
       setUnlocked(true);
+      return;
+    }
+
+    // Support instant URL param unlock (e.g., ?key=MNMF2K26 or ?pass=MNMF2K26)
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlKey = params.get("key") || params.get("password") || params.get("pass");
+      if (urlKey && checkAdminPassword(urlKey)) {
+        setAdminUnlocked(true);
+        setUnlocked(true);
+        toast.success("Admin access granted via security key");
+      }
     }
   }, []);
 
