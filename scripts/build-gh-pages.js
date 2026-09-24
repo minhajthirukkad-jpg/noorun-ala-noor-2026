@@ -44,7 +44,7 @@ for (const dir of assetDirs) {
   }
 }
 
-// 4. HTML Template for index.html (SPA with query-param router restore)
+// 4. HTML Template for index.html (SPA with query-param router restore and robust base path)
 const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
 <html lang="en">
   <head>
@@ -60,12 +60,13 @@ const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
       property="og:description"
       content="Official festival scoreboard, real-time live program status, searchable results, and admin management for Noorun Ala Noor Meelad Fest 2026."
     />
-    <link rel="icon" type="image/x-icon" href="${assetPrefix}favicon.ico" />
     <script type="text/javascript">
       // Clean up any stale /dist/ URL loops from browser history
-      (function (l) {
-        if (l.pathname.includes("/dist") || l.search.includes("/dist")) {
-          var cleanPath = l.pathname.replace(/\\/dist\\/?/g, "/");
+      (function () {
+        var l = window.location;
+        var path = l.pathname;
+        if (path.includes("/dist") || l.search.includes("/dist")) {
+          var cleanPath = path.replace(/\\/dist\\/?/g, "/");
           var cleanSearch = l.search.replace(/[\\?&]\\/dist\\/?/g, "");
           l.replace(
             l.protocol +
@@ -78,6 +79,7 @@ const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
           );
           return;
         }
+
         // GitHub Pages SPA redirect decoder for sub-routes (/admin, /check-results)
         if (l.search && l.search[1] === "/") {
           var decoded = l.search
@@ -87,7 +89,7 @@ const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
               return s.replace(/~and~/g, "&");
             })
             .join("?");
-          var basePath = l.pathname.replace(/\\/$/, "");
+          var basePath = path.replace(/\\/$/, "");
           var subPath = decoded.startsWith("/") ? decoded : "/" + decoded;
           window.history.replaceState(
             null,
@@ -95,10 +97,39 @@ const getIndexHtml = (assetPrefix = "./") => `<!doctype html>
             basePath + subPath + l.hash,
           );
         }
-      })(window.location);
+
+        // Determine base path for static assets
+        var assetBase = "/";
+        if (path.indexOf("/noorun-ala-noor-2026/docs") === 0) {
+          assetBase = "/noorun-ala-noor-2026/docs/";
+        } else if (path.indexOf("/noorun-ala-noor-2026") === 0) {
+          assetBase = "/noorun-ala-noor-2026/";
+        } else if ("${assetPrefix}" !== "./") {
+          assetBase = "${assetPrefix}";
+        }
+
+        // Favicon
+        var fav = document.createElement("link");
+        fav.rel = "icon";
+        fav.type = "image/x-icon";
+        fav.href = assetBase + "favicon.ico";
+        document.head.appendChild(fav);
+
+        // Stylesheet
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.crossOrigin = "";
+        link.href = assetBase + "assets/styles.css?v=2.2.5";
+        document.head.appendChild(link);
+
+        // App Bundle Script
+        var script = document.createElement("script");
+        script.type = "module";
+        script.crossOrigin = "";
+        script.src = assetBase + "assets/client.js?v=2.2.5";
+        document.head.appendChild(script);
+      })();
     </script>
-    <script type="module" crossorigin src="${assetPrefix}assets/client.js?v=2.2.0"></script>
-    <link rel="stylesheet" crossorigin href="${assetPrefix}assets/styles.css?v=2.2.0" />
   </head>
   <body class="bg-background text-foreground antialiased min-h-screen">
     <div id="root"></div>
